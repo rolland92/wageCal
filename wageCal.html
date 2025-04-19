@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>黄金工资计算器</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #FFD700;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+        }
+        
+        /* 金色粒子背景 */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 15px;
+            box-shadow: 0 0 30px #FFD700;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #FFD700;
+            color: #FFD700;
+            border-radius: 5px;
+        }
+        
+        /* 更流畅的数字跳动动画 */
+        .display {
+            font-size: 72px;
+            text-align: center;
+            margin: 30px 0;
+            font-weight: bold;
+            text-shadow: 0 0 10px #FFD700;
+            transition: transform 0.1s ease-out;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .display.jump {
+            transform: scale(1.1);
+        }
+        
+        .controls {
+            text-align: center;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #FFD700, #FFA500);
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 15px #FFD700;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #FFD700;
+        }
+        
+        /* 高质量金币SVG样式 */
+        .coin {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFD700'/%3E%3Ccircle cx='50' cy='50' r='40' fill='%23FFEC8B'/%3E%3Ccircle cx='50' cy='50' r='35' fill='%23FFD700'/%3E%3Ctext x='50' y='55' font-size='30' text-anchor='middle' fill='%238B7500' font-weight='bold'%3E$%3C/text%3E%3C/svg%3E");
+            background-size: cover;
+            animation: fall linear forwards;
+            z-index: 10;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(-50px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(calc(100vh + 50px)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* 货币符号样式 */
+        .currency {
+            font-size: 0.6em;
+            vertical-align: top;
+            margin-right: 5px;
+        }
+        
+        /* 右上角控制按钮 */
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .top-controls button {
+            padding: 0;
+            font-size: 14px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        /* 设置面板 */
+        .settings-panel {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #FFD700;
+            box-shadow: 0 0 15px #FFD700;
+            z-index: 100;
+            display: none;
+        }
+        
+        .settings-panel label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #FFD700;
+            white-space: nowrap;
+        }
+        
+        .settings-panel input[type="range"] {
+            width: 200px;
+            -webkit-appearance: none;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            outline: none;
+            margin: 0 10px;
+            flex-grow: 1;
+        }
+        
+        /* 滑块轨道样式 - 蓝色 */
+        .settings-panel input[type="range"]::-webkit-slider-runnable-track {
+            height: 10px;
+            background: linear-gradient(to right, #4285F4, hwb(49 22% 1%));
+            border-radius: 5px;
+        }
+        
+        /* 滑块thumb样式 */
+        .settings-panel input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #FFD700;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -5px;
+            box-shadow: 0 0 5px #000;
+        }
+        
+        .settings-panel span {
+            display: inline-block;
+            width: 40px;
+            text-align: center;
+            color: #FFD700;
+        }
+        
+        /* 齿轮图标 - 完美居中版 */
+        .gear-icon {
+            display: block;
+            width: 24px;
+            height: 24px;
+            position: relative;
+            margin: 0 auto;
+        }
+        
+        .gear-icon:before,
+        .gear-icon:after {
+            content: "";
+            position: absolute;
+            background-color: #000;
+        }
+        
+        .gear-icon:before {
+            width: 24px;
+            height: 24px;
+            left: 0;
+            top: 0;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at center, #000 30%, transparent 30%),
+                conic-gradient(
+                    #000 0deg 30deg, 
+                    transparent 30deg 60deg, 
+                    #000 60deg 90deg, 
+                    transparent 90deg 120deg, 
+                    #000 120deg 150deg, 
+                    transparent 150deg 180deg,
+                    #000 180deg 210deg,
+                    transparent 210deg 240deg,
+                    #000 240deg 270deg,
+                    transparent 270deg 300deg,
+                    #000 300deg 330deg,
+                    transparent 330deg 360deg
+                );
+        }
+
+        input {
+            width: 98%;
+        }
+
+           /* 新增优化后的滑块样式 */
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            outline: none;
+            position: relative;
+        }
+
+        /* 轨道样式 - 纯蓝色 */
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(
+                to right, 
+                #2196F3 0%, 
+                rgb(238, 192, 39) var(--fill-percent), 
+                #333 var(--fill-percent), 
+                #333 100%
+            );
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(
+                to right, 
+                #2196F3 0%, 
+                #2196F3 var(--fill-percent), 
+                #333 var(--fill-percent), 
+                #333 100%
+            );
+        }
+
+        /* 滑块thumb样式 - 增加边框和阴影 */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #FFD700;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -5px;
+            border: 2px solid #000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #FFD700;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <!-- 金色粒子背景 -->
+    <div id="particles-js"></div>
+    
+    <!-- 右上角控制按钮 -->
+    <div class="top-controls">
+        <button id="langBtn">En</button>
+        <button id="settingsBtn" title="设置">
+            <div class="gear-icon"></div>
+        </button>
+    </div>
+    
+    <!-- 设置面板 -->
+    <div class="settings-panel" id="settingsPanel">
+        <label>
+            <p data-zh="金币雨触发倍数" data-en="Coin Rain Trigger">金币雨触发倍数</p>
+            <input type="range" id="coinTrigger" min="0" max="1000" value="10" step="10">
+            <span id="coinTriggerValue">10</span>
+        </label>
+    </div>
+    
+    <div class="container">
+        <h1 style="text-align: center;" data-zh="✨ 黄金工资计算器 ✨" data-en="✨ Gold Salary Calculator ✨">✨ 黄金工资计算器 ✨</h1>
+        
+        <div class="input-group">
+            <label for="salary" data-zh="月薪 (元)" data-en="Monthly Salary">月薪 (元)</label>
+            <input type="number" id="salary" value="10000">
+        </div>
+        
+        <div class="input-group">
+            <label for="startTime" data-zh="上班时间" data-en="Start Time">上班时间</label>
+            <input type="time" id="startTime" value="09:00">
+        </div>
+        
+        <div class="input-group">
+            <label for="endTime" data-zh="下班时间" data-en="End Time">下班时间</label>
+            <input type="time" id="endTime" value="18:00">
+        </div>
+        
+        <div class="input-group">
+            <label for="workDays" data-zh="每月工作天数" data-en="Work Days per Month">每月工作天数: <span id="daysValue">22</span></label>
+            <input type="range" id="workDays" min="1" max="31" value="22">
+        </div>
+        
+        <div class="display" id="earnings"><span class="currency">¥</span>0.00</div>
+        
+        <div class="controls">
+            <button id="startBtn" data-zh="开始赚钱" data-en="Start Earning">开始赚钱</button>
+        </div>
+    </div>
+    
+    <!-- 金币掉落音效 -->
+    <audio id="coinSound" src="https://bpic.588ku.com/audio_copy/audio/18/07/30/26dc82c82b15687c77dd7cf79f8016cd.mp3" preload="auto"></audio>
+
+    <!-- 引入粒子库 -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // 初始化粒子背景
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 80,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#FFD700"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    }
+                },
+                "opacity": {
+                    "value": 0.5,
+                    "random": true,
+                    "anim": {
+                        "enable": true,
+                        "speed": 1,
+                        "opacity_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 3,
+                    "random": true,
+                    "anim": {
+                        "enable": true,
+                        "speed": 2,
+                        "size_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#FFD700",
+                    "opacity": 0.4,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 1,
+                    "direction": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false,
+                    "attract": {
+                        "enable": true,
+                        "rotateX": 600,
+                        "rotateY": 1200
+                    }
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 140,
+                        "line_linked": {
+                            "opacity": 1
+                        }
+                    },
+                    "push": {
+                        "particles_nb": 4
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+
+        let timer;
+        let totalEarned = 0;
+        let lastWholeNumber = 0;
+        let isRunning = false;
+        let isEnglish = false;
+        let coinTriggerMultiple = 10; // 默认10的倍数触发
+        
+        const coinSound = document.getElementById('coinSound');
+        const display = document.getElementById('earnings');
+        const langBtn = document.getElementById('langBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const coinTrigger = document.getElementById('coinTrigger');
+        const coinTriggerValue = document.getElementById('coinTriggerValue');
+        const titleElement = document.querySelector('h1');
+        
+        // 语言切换
+        langBtn.addEventListener('click', function() {
+            isEnglish = !isEnglish;
+            this.textContent = isEnglish ? '中' : 'En';
+            updateLanguage();
+        });
+        
+        // 设置面板切换
+        settingsBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // 阻止事件冒泡
+            settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block';
+        });
+        
+        // 点击页面其他地方关闭设置面板
+        document.addEventListener('click', function(e) {
+            if (!settingsPanel.contains(e.target) && e.target !== settingsBtn && !settingsBtn.contains(e.target)) {
+                settingsPanel.style.display = 'none';
+            }
+        });
+        
+        // 金币触发倍数设置
+        coinTrigger.addEventListener('input', function() {
+            coinTriggerMultiple = parseInt(this.value);
+            coinTriggerValue.textContent = coinTriggerMultiple;
+            updateLanguage(); // 更新设置面板中的文字
+        });
+        
+        function updateLanguage() {
+            // 更新标题
+            titleElement.textContent = isEnglish ? titleElement.dataset.en : titleElement.dataset.zh;
+            
+            // 更新其他元素
+            const elements = document.querySelectorAll('[data-zh], [data-en]');
+            elements.forEach(el => {
+                if (el.tagName === 'LABEL') {
+                    if (el.htmlFor === 'workDays') {
+                        el.innerHTML = (isEnglish ? el.dataset.en : el.dataset.zh) + ': <span id="daysValue">' + document.getElementById('workDays').value + '</span>';
+                    } else {
+                        el.textContent = isEnglish ? el.dataset.en : el.dataset.zh;
+                    }
+                } else if (el.tagName === 'BUTTON') {
+                    if (el.id === 'startBtn') {
+                        el.textContent = isEnglish ? 
+                            (isRunning ? 'Pause' : 'Start Earning') : 
+                            (isRunning ? '暂停' : '开始赚钱');
+                    } else {
+                        el.textContent = isEnglish ? el.dataset.en : el.dataset.zh;
+                    }
+                } else if (el.id === 'coinTriggerValue') {
+                    // 保留数值不变
+                    return;
+                } else if (el.tagName === 'P' && el.dataset.zh) {
+                    el.textContent = isEnglish ? el.dataset.en : el.dataset.zh;
+                }
+            });
+            
+            // 更新货币符号
+            const currencySymbol = display.querySelector('.currency');
+            currencySymbol.textContent = isEnglish ? '$' : '¥';
+        }
+        
+        document.getElementById('workDays').addEventListener('input', function() {
+            document.getElementById('daysValue').textContent = this.value;
+        });
+        
+        document.getElementById('startBtn').addEventListener('click', function() {
+            if (isRunning) {
+                clearInterval(timer);
+                this.textContent = isEnglish ? 'Start Earning' : '开始赚钱';
+                isRunning = false;
+            } else {
+                startCalculation();
+                this.textContent = isEnglish ? 'Pause' : '暂停';
+                isRunning = true;
+            }
+        });
+        
+        function startCalculation() {
+            const salary = parseFloat(document.getElementById('salary').value);
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const workDays = parseInt(document.getElementById('workDays').value);
+            
+            // 计算小时工资
+            const [startHour, startMinute] = startTime.split(':').map(Number);
+            const [endHour, endMinute] = endTime.split(':').map(Number);
+            
+            const dailyHours = (endHour + endMinute/60) - (startHour + startMinute/60);
+            const monthlyHours = dailyHours * workDays;
+            const hourlyRate = salary / monthlyHours;
+            const secondRate = hourlyRate / 3600;
+            
+            const startTimestamp = Date.now();
+            
+            timer = setInterval(() => {
+                const elapsedSeconds = (Date.now() - startTimestamp) / 1000;
+                totalEarned = secondRate * elapsedSeconds;
+                
+                // 更新显示，添加跳动效果
+                updateDisplay(totalEarned.toFixed(2));
+                
+                // 检查整数增量以触发金币效果
+                const currentWholeNumber = Math.floor(totalEarned);
+                if (currentWholeNumber > lastWholeNumber && coinTriggerMultiple > 0 && currentWholeNumber % coinTriggerMultiple === 0) {
+                    createCoin();
+                    playCoinSound();
+                }
+                lastWholeNumber = currentWholeNumber;
+            }, 100);
+        }
+        
+        function updateDisplay(amount) {
+            // 添加跳动动画
+            display.classList.add('jump');
+            setTimeout(() => {
+                display.classList.remove('jump');
+            }, 100);
+            
+            // 更新金额
+            const currencySymbol = display.querySelector('.currency') || document.createElement('span');
+            currencySymbol.className = 'currency';
+            currencySymbol.textContent = isEnglish ? '$' : '¥';
+            
+            display.innerHTML = '';
+            display.appendChild(currencySymbol);
+            display.appendChild(document.createTextNode(amount));
+        }
+        
+        function createCoin() {
+            const coinsCount = Math.floor(Math.random() * 15) + 10; // 10-25个金币
+            for (let i = 0; i < coinsCount; i++) {
+                const coin = document.createElement('div');
+
+                coin.className = 'coin';
+                
+                // 随机位置从顶部掉落
+                coin.style.left = Math.random() * 100 + 'vw';
+                coin.style.top = '-50px';
+                
+                // 随机动画持续时间
+                const duration = Math.random() * 2 + 1; // 1-3秒
+                coin.style.animationDuration = duration + 's';
+                
+                // 随机大小变化
+                const size = Math.random() * 20 + 30; // 30-50px
+                coin.style.width = size + 'px';
+                coin.style.height = size + 'px';
+                
+                document.body.appendChild(coin);
+                
+                // 动画结束后移除金币
+                setTimeout(() => {
+                    coin.remove();
+                }, duration * 1000);
+            }
+        }
+        
+        function playCoinSound() {
+            coinSound.currentTime = 0; // 重置音频以便重复播放
+            coinSound.play().catch(e => console.log("音频播放被阻止:", e));
+        }
+
+    // 优化后的滑块更新函数
+        function updateRangeStyle(range) {
+            const value = parseFloat(range.value);
+            const min = parseFloat(range.min);
+            const max = parseFloat(range.max);
+            const fillPercent = ((value - min) / (max - min)) * 100 + '%';
+            
+            // 精确控制填充范围（留出thumb宽度）
+            const thumbOffset = 10; // 根据thumb宽度调整
+            const adjustedPercent = `calc(${fillPercent} - ${thumbOffset}px)`;
+            
+            range.style.setProperty('--fill-percent', adjustedPercent);
+        }
+
+        // 初始化所有滑块
+        document.querySelectorAll('input[type="range"]').forEach(range => {
+            // 初始化样式
+            updateRangeStyle(range);
+            
+            // 添加实时更新监听
+            range.addEventListener('input', function() {
+                updateRangeStyle(this);
+                
+                // 特殊处理工作天数显示
+                if (this.id === 'workDays') {
+                    document.getElementById('daysValue').textContent = this.value;
+                }
+            });
+            
+            // 添加窗口resize监听
+            window.addEventListener('resize', () => updateRangeStyle(range));
+        });
+
+        // 添加鼠标拖动时的精准控制
+        let isDragging = false;
+        document.querySelectorAll('input[type="range"]').forEach(range => {
+            range.addEventListener('mousedown', () => isDragging = true);
+            range.addEventListener('mouseup', () => isDragging = false);
+            range.addEventListener('mousemove', () => {
+                if (isDragging) updateRangeStyle(range);
+            });
+        });
+    </script>
+</body>
+</html>
